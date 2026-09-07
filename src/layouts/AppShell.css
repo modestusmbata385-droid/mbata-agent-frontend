@@ -1,0 +1,155 @@
+/* Section 33/34: design system — light/dark/system theme via CSS variables,
+   responsive shell, states, toasts, modals. */
+
+:root, [data-theme="light"] {
+  --bg: #F7F8F7;
+  --surface: #FFFFFF;
+  --surface-2: #F0F1EF;
+  --line: #E1E3DF;
+  --text: #14201D;
+  --muted: #5C6B66;
+  --accent: #B9852F;
+  --accent-2: #8A6323;
+  --success: #2E7D5B;
+  --error: #C0392B;
+  --radius: 8px;
+}
+
+[data-theme="dark"] {
+  --bg: #0E1B1A;
+  --surface: #152624;
+  --surface-2: #1D332F;
+  --line: #2A423C;
+  --text: #EAF2EF;
+  --muted: #8FA89F;
+  --accent: #D9A441;
+  --accent-2: #E8C170;
+  --success: #5FB088;
+  --error: #E2665B;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); transition: background .15s ease, color .15s ease; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+button, select, input {
+  font-family: inherit;
+}
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn {
+  padding: .55rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: .9rem;
+}
+.btn--primary { background: var(--accent); color: #1A1408; font-weight: 600; }
+.btn--secondary { background: var(--surface-2); color: var(--text); border-color: var(--line); }
+
+/* ---- Shell layout ---- */
+.app-shell { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
+
+.app-shell__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1rem; height: 56px; border-bottom: 1px solid var(--line);
+  background: var(--surface); flex-shrink: 0;
+}
+.app-shell__menu-btn { display: none; background: none; border: none; font-size: 1.3rem; color: var(--text); }
+.app-shell__logo { font-weight: 700; letter-spacing: .01em; }
+.app-shell__header-actions { display: flex; align-items: center; gap: .75rem; }
+.app-shell__header-actions button { background: none; border: none; font-size: 1.05rem; cursor: pointer; color: var(--muted); }
+.theme-toggle { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: .3rem .5rem; color: var(--text); }
+
+.app-shell__body { display: flex; flex: 1; min-height: 0; }
+
+.app-shell__sidebar { width: 220px; border-right: 1px solid var(--line); padding: 1rem 0; overflow-y: auto; background: var(--surface); }
+.app-shell__nav-link {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .6rem 1.25rem; text-decoration: none; color: var(--muted); font-size: .9rem;
+  border-left: 3px solid transparent;
+}
+.app-shell__nav-link.active { color: var(--text); border-left-color: var(--accent); background: var(--surface-2); font-weight: 600; }
+
+.app-shell__content { flex: 1; overflow-y: auto; padding: 1.5rem; }
+
+/* ---- Mobile drawer ---- */
+.drawer-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 40; display: none;
+}
+.drawer {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 260px;
+  background: var(--surface); padding: 1rem; overflow-y: auto;
+}
+.drawer__close { background: none; border: none; font-size: 1.5rem; color: var(--text); margin-bottom: 1rem; }
+.drawer__link { display: flex; gap: .6rem; padding: .75rem .5rem; text-decoration: none; color: var(--text); border-bottom: 1px solid var(--line); }
+
+/* ---- Mobile bottom nav ---- */
+.bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+  background: var(--surface); border-top: 1px solid var(--line);
+  align-items: center; justify-content: space-around;
+}
+.bottom-nav__link { display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: var(--muted); font-size: .68rem; }
+.bottom-nav__link.active { color: var(--accent); }
+.bottom-nav__label { font-size: .65rem; }
+
+@media (max-width: 768px) {
+  .app-shell__sidebar { display: none; }
+  .app-shell__menu-btn { display: block; }
+  .drawer-backdrop { display: block; }
+  .bottom-nav { display: flex; }
+  .app-shell__content { padding-bottom: 76px; } /* room for bottom nav */
+}
+
+/* ---- UI states (Section 33) ---- */
+.state { border: 1px dashed var(--line); border-radius: var(--radius); padding: 1.5rem; text-align: center; color: var(--muted); }
+.state--error { border-color: var(--error); color: var(--error); }
+.state--denied { border-color: var(--error); color: var(--error); }
+.state--loading { border-style: solid; text-align: left; }
+
+.skeleton-line {
+  height: 14px; border-radius: 4px; margin-bottom: .5rem;
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 37%, var(--surface-2) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+@keyframes skeleton-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line { animation: none; }
+}
+
+/* ---- Toasts ---- */
+.toast-stack {
+  position: fixed; bottom: 1rem; right: 1rem; display: flex; flex-direction: column; gap: .5rem; z-index: 60;
+}
+.toast {
+  padding: .65rem 1rem; border-radius: var(--radius); font-size: .85rem;
+  background: var(--surface); border: 1px solid var(--line); color: var(--text);
+  box-shadow: 0 4px 14px rgba(0,0,0,.15);
+}
+.toast--success { border-color: var(--success); color: var(--success); }
+.toast--error { border-color: var(--error); color: var(--error); }
+
+/* ---- Modal ---- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem;
+}
+.modal {
+  background: var(--surface); border-radius: var(--radius); max-width: 420px; width: 100%;
+  padding: 1.25rem; border: 1px solid var(--line);
+}
+.modal__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+.modal__close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--muted); }
