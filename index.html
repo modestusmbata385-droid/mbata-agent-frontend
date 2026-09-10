@@ -1,12 +1,138 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mbata Agent</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MALI CONTROL</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f6fa;color:#17202a}
+header{background:#0b4f6c;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+main{max-width:1100px;margin:20px auto;padding:0 14px}.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 3px 14px #0001}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+input,select,button{width:100%;padding:11px;border:1px solid #ccd5df;border-radius:8px;margin:5px 0;font-size:15px}
+button{background:#0b4f6c;color:#fff;border:0;font-weight:700;cursor:pointer}.secondary{background:#64748b}
+.hidden{display:none!important}.msg{padding:11px;border-radius:8px;margin:10px 0;background:#edf6ff}.err{background:#fff0f0;color:#9b1c1c}.ok{background:#effcf2;color:#176b2c}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}nav button{width:auto}
+.code{font-size:20px;font-weight:bold;background:#eef2f7;padding:10px;border-radius:8px;display:inline-block}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}
+label{font-weight:bold;display:block;margin-top:7px}
+</style>
+</head>
+<body>
+<header><b>MALI CONTROL</b><button id="logout" class="secondary hidden" style="width:auto">Logout</button></header>
+<main>
+<div id="message"></div>
+
+<section id="auth">
+<div class="card">
+<h2 id="title">Login</h2>
+<div id="login">
+<label>Email</label><input id="email" type="email">
+<label>Password</label><input id="password" type="password">
+<button onclick="login()">Login</button><button class="secondary" onclick="registerView()">Create Account</button>
+</div>
+
+<div id="register" class="hidden">
+<label>Account Type</label>
+<select id="type">
+<option value="PERSONAL">Personal</option><option value="BODA_BOSS">Boda Boss</option>
+<option value="BODA_DRIVER">Boda Driver</option><option value="LANDLORD">Landlord</option>
+<option value="TENANT">Tenant</option><option value="PARENT">Parent</option>
+</select>
+<label>Full Name</label><input id="name">
+<label>Phone</label><input id="phone">
+<label>Email</label><input id="remail" type="email">
+<label>Password</label><input id="rpass" type="password">
+<button onclick="register()">Register</button><button class="secondary" onclick="loginView()">Back to Login</button>
+</div>
+
+<div id="otp" class="hidden">
+<h3>OTP Verification</h3>
+<p>Enter the 6-digit OTP sent to your email.</p>
+<label>Email</label><input id="oemail" type="email">
+<label>OTP</label><input id="ocode" maxlength="6" inputmode="numeric">
+<button onclick="verify()">Verify OTP</button><button class="secondary" onclick="resend()">Resend OTP</button>
+</div>
+</div>
+</section>
+
+<section id="app" class="hidden">
+<nav><button onclick="panel('home')">Dashboard</button><button onclick="panel('boda')">🛵 Boda</button><button onclick="panel('rent')">🏠 Rent</button><button onclick="panel('school')">🎓 School</button></nav>
+
+<div id="home" class="card panel"><h2>Dashboard</h2><div id="userinfo"></div></div>
+
+<div id="boda" class="panel hidden">
+<div id="bossSetup" class="card hidden"><h2>🛵 Boda Boss</h2><div class="grid">
+<div><label>Business name</label><input id="bn"></div><div><label>Location</label><input id="bl"></div>
+<div><label>Lipa Namba</label><input id="bp"></div><div><label>Payment phone</label><input id="bpp"></div>
+<div><label>Daily amount</label><input id="ba" type="number"></div></div><button onclick="bossCreate()">Save Boda Boss</button></div>
+
+<div id="driverSetup" class="card hidden"><h2>👨‍✈️ Boda Driver</h2><div class="grid">
+<div><label>Driver name</label><input id="dn"></div><div><label>Phone</label><input id="dp"></div>
+<div><label>Plate number</label><input id="dplate"></div><div><label>BODA Code ya Boss</label><input id="dcode"></div>
+<div><label>Daily amount</label><input id="ddaily" type="number"></div><div><label>Monthly amount</label><input id="dmonthly" type="number"></div>
+</div><button onclick="driverCreate()">Register Driver</button></div>
+
+<div id="bossPanel" class="card hidden"></div><div id="driverPanel" class="card hidden"></div>
+</div>
+
+<div id="rent" class="panel hidden">
+<div id="landlordSetup" class="card hidden"><h2>🏠 Landlord</h2><div class="grid">
+<div><label>Name/Business</label><input id="ln"></div><div><label>Phone</label><input id="lp"></div>
+<div><label>Lipa Namba</label><input id="llipa"></div><div><label>Payment phone</label><input id="lpay"></div>
+</div><button onclick="landlordCreate()">Save Landlord</button></div>
+<div id="landlordPanel" class="card hidden"></div>
+<div id="tenantSetup" class="card hidden"><h2>👤 Tenant</h2><label>Landlord Code</label><input id="tcode"><label>Property Code</label><input id="pcode"><button onclick="tenantCreate()">Join Rental</button></div>
+<div id="tenantPanel" class="card hidden"></div>
+</div>
+
+<div id="school" class="panel hidden">
+<div class="card"><h2>🎓 Register Child</h2><div class="grid">
+<div><label>Child name</label><input id="cn"></div><div><label>Date of birth</label><input id="cdob" type="date"></div>
+<div><label>Gender</label><select id="cgender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+<div><label>School ID</label><input id="cschool"></div><div><label>Class / Level</label><input id="cclass"></div>
+<div><label>Admission number</label><input id="cadm"></div></div><button onclick="childCreate()">Register Child</button></div>
+<div class="card"><h3>Children & Development</h3><div id="children"></div></div>
+</div>
+</section>
+</main>
+
+<script>
+const A="/api";let token=localStorage.getItem("mali_token"),user=JSON.parse(localStorage.getItem("mali_user")||"null"),purpose="login";
+const $=id=>document.getElementById(id);
+function say(x,c="msg"){$("message").innerHTML='<div class="'+c+'">'+esc(x)+'</div>'}
+function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+async function api(p,o={}){o.headers=Object.assign({"Content-Type":"application/json"},o.headers||{});if(token)o.headers.Authorization="Bearer "+token;let r=await fetch(A+p,o),d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.message||"Request failed");return d}
+function loginView(){$("login").classList.remove("hidden");$("register").classList.add("hidden");$("otp").classList.add("hidden");$("title").textContent="Login"}
+function registerView(){$("login").classList.add("hidden");$("register").classList.remove("hidden");$("otp").classList.add("hidden");$("title").textContent="Create Account"}
+function otpView(e,p){purpose=p;$("login").classList.add("hidden");$("register").classList.add("hidden");$("otp").classList.remove("hidden");$("title").textContent="OTP Verification";$("oemail").value=e}
+async function register(){try{let e=$("remail").value.trim().toLowerCase();let d=await api("/auth/register",{method:"POST",body:JSON.stringify({full_name:$("name").value,phone:$("phone").value,email:e,password:$("rpass").value})});localStorage.setItem("pending_type",$("type").value);otpView(e,"registration");say(d.message,"ok")}catch(e){say(e.message,"err")}}
+async function login(){try{let e=$("email").value.trim().toLowerCase();let d=await api("/auth/login",{method:"POST",body:JSON.stringify({email:e,password:$("password").value})});otpView(e,"login");say(d.message,"ok")}catch(e){say(e.message,"err")}}
+async function verify(){try{let d=await api("/auth/verify-otp",{method:"POST",body:JSON.stringify({email:$("oemail").value,code:$("ocode").value,purpose})});token=d.token;user=d.user;localStorage.setItem("mali_token",token);localStorage.setItem("mali_user",JSON.stringify(user));$("auth").classList.add("hidden");$("app").classList.remove("hidden");$("logout").classList.remove("hidden");say("OTP verified.","ok");load()}catch(e){say(e.message,"err")}}
+async function resend(){try{let d=await api("/auth/resend-otp",{method:"POST",body:JSON.stringify({email:$("oemail").value,purpose})});say(d.message,"ok")}catch(e){say(e.message,"err")}}
+$("logout").onclick=()=>{localStorage.clear();location.reload()}
+function panel(id){document.querySelectorAll(".panel").forEach(x=>x.classList.add("hidden"));$(id).classList.remove("hidden");if(id==="boda")loadBoda();if(id==="rent")loadRent();if(id==="school")loadChildren()}
+async function load(){ $("userinfo").innerHTML="<b>"+esc(user.full_name)+"</b><br>"+esc(user.email)+"<br>Role: "+esc(user.role||"user");let t=localStorage.getItem("pending_type");if(t==="BODA_BOSS")$("bossSetup").classList.remove("hidden");if(t==="BODA_DRIVER")$("driverSetup").classList.remove("hidden");if(t==="LANDLORD")$("landlordSetup").classList.remove("hidden");if(t==="TENANT")$("tenantSetup").classList.remove("hidden");loadBoda();loadRent();loadChildren()}
+async function loadBoda(){try{let d=await api("/boda/boss/me");$("bossSetup").classList.add("hidden");$("bossPanel").classList.remove("hidden");$("bossPanel").innerHTML="<h2>🛵 Boda Boss</h2><p>BODA Code:</p><div class='code'>"+esc(d.boss.join_code)+"</div><p>Lipa Namba: <b>"+esc(d.boss.lipa_number)+"</b></p><p>Payment phone: <b>"+esc(d.boss.payment_phone)+"</b></p><button onclick='bossPayments()'>View Payments</button><div id='bpay'></div>"}catch{}try{let d=await api("/boda/driver/me");$("driverSetup").classList.add("hidden");$("driverPanel").classList.remove("hidden");$("driverPanel").innerHTML="<h2>👨‍✈️ Driver</h2><p>Boss: <b>"+esc(d.driver.business_name)+"</b></p><p>Lipa Namba: <b>"+esc(d.driver.lipa_number)+"</b></p><p>Payment phone: <b>"+esc(d.driver.payment_phone)+"</b></p><label>Amount</label><input id='payamt' type='number' value='"+(d.driver.monthly_amount||d.driver.amount_due_daily||0)+"'><label>Payment Reference</label><input id='payref'><button onclick='bpay()'>Submit Payment</button><div id='dpay'></div>"}catch{}}
+async function bossCreate(){try{let d=await api("/boda/boss/profile",{method:"POST",body:JSON.stringify({business_name:$("bn").value,location:$("bl").value,lipa_number:$("bp").value,payment_phone:$("bpp").value,daily_amount:Number($("ba").value||0)})});say("Boss created. BODA Code: "+d.boss.join_code,"ok");loadBoda()}catch(e){say(e.message,"err")}}
+async function driverCreate(){try{await api("/boda/driver/profile",{method:"POST",body:JSON.stringify({full_name:$("dn").value,phone:$("dp").value,plate_number:$("dplate").value,boss_join_code:$("dcode").value,amount_due_daily:Number($("ddaily").value||0),monthly_amount:Number($("dmonthly").value||0)})});say("Driver registered.","ok");loadBoda()}catch(e){say(e.message,"err")}}
+async function bpay(){try{let d=await api("/boda/payments",{method:"POST",body:JSON.stringify({amount:Number($("payamt").value),payment_reference:$("payref").value})});say(d.message,"ok")}catch(e){say(e.message,"err")}}
+async function bossPayments(){try{let d=await api("/boda/boss/payments");$("bpay").innerHTML=d.payments.map(p=>"<div class='card'><b>"+esc(p.full_name)+"</b><br>Amount: "+p.amount+"<br>Reference: "+esc(p.payment_reference)+"<br>Status: "+p.status+(p.status==="pending"?"<button onclick='confirmB("+p.id+")'>Confirm</button>":"")+"</div>").join("")||"No payments"}catch(e){say(e.message,"err")}}
+async function confirmB(id){try{await api("/boda/payments/"+id+"/confirm",{method:"POST"});bossPayments()}catch(e){say(e.message,"err")}}
+async function loadRent(){try{let d=await api("/rent/landlord/me");$("landlordSetup").classList.add("hidden");landlordRender(d.landlord)}catch{}try{let d=await api("/rent/tenant/me");$("tenantSetup").classList.add("hidden");tenantRender(d.tenant)}catch{}}
+function landlordRender(l){$("landlordPanel").classList.remove("hidden");$("landlordPanel").innerHTML="<h2>🏠 Landlord</h2><p>Landlord Code:</p><div class='code'>"+esc(l.join_code)+"</div><p>Lipa Namba: <b>"+esc(l.lipa_number)+"</b></p><p>Payment phone: <b>"+esc(l.payment_phone)+"</b></p><h3>Add House / Room</h3><div class='grid'><input id='hn' placeholder='House name'><input id='hl' placeholder='Location'><input id='hr' placeholder='Room number'><input id='ha' type='number' placeholder='Rent amount'><input id='hd' type='number' placeholder='Due day'></div><button onclick='houseCreate()'>Add House / Room</button><button class='secondary' onclick='rentPayments()'>View Rent Payments</button><div id='houses'></div><div id='rpay'></div>"}
+async function landlordCreate(){try{let d=await api("/rent/landlord/profile",{method:"POST",body:JSON.stringify({business_name:$("ln").value,phone:$("lp").value,lipa_number:$("llipa").value,payment_phone:$("lpay").value})});say("Landlord created. Code: "+d.landlord.join_code,"ok");loadRent()}catch(e){say(e.message,"err")}}
+async function houseCreate(){try{let d=await api("/rent/houses",{method:"POST",body:JSON.stringify({house_name:$("hn").value,location:$("hl").value,room_number:$("hr").value,rent_amount:Number($("ha").value),due_day:Number($("hd").value||5)})});say("Property created. Code: "+d.house.property_code,"ok");loadRent()}catch(e){say(e.message,"err")}}
+async function rentPayments(){try{let d=await api("/rent/landlord/payments");$("rpay").innerHTML=d.payments.map(p=>"<div class='card'>"+esc(p.tenant_name)+" — "+p.amount+" — "+esc(p.payment_reference)+" — "+p.status+(p.status==="pending"?"<button onclick='confirmR("+p.id+")'>Confirm</button>":"")+"</div>").join("")||"No payments"}catch(e){say(e.message,"err")}}
+async function confirmR(id){try{await api("/rent/payments/"+id+"/confirm",{method:"POST"});rentPayments()}catch(e){say(e.message,"err")}}
+async function tenantCreate(){try{await api("/rent/tenant/profile",{method:"POST",body:JSON.stringify({landlord_join_code:$("tcode").value,property_code:$("pcode").value})});say("Tenant registered.","ok");loadRent()}catch(e){say(e.message,"err")}}
+function tenantRender(t){$("tenantPanel").classList.remove("hidden");$("tenantPanel").innerHTML="<h2>👤 Tenant</h2><p>Landlord: <b>"+esc(t.business_name)+"</b></p><p>House: "+esc(t.house_name)+" Room "+esc(t.room_number)+"</p><p>Rent: <b>"+t.rent_amount+"</b></p><p>Lipa Namba: <b>"+esc(t.lipa_number)+"</b></p><p>Payment phone: <b>"+esc(t.payment_phone)+"</b></p><label>Amount</label><input id='ramt' type='number' value='"+t.rent_amount+"'><label>Payment Reference</label><input id='rref'><button onclick='rpay()'>Submit Rent Payment</button><div id='thistory'></div>"}
+async function rpay(){try{let d=await api("/rent/payments",{method:"POST",body:JSON.stringify({amount:Number($("ramt").value),payment_reference:$("rref").value})});say(d.message,"ok")}catch(e){say(e.message,"err")}}
+async function loadChildren(){try{let d=await api("/school/children");$("children").innerHTML=d.children.map(c=>"<div class='card'><b>"+esc(c.full_name)+"</b><br>Admission: "+esc(c.admission_number||"-")+"<br>Class: "+esc(c.current_class)+"<br>Gender: "+esc(c.gender||"-")+"<button onclick='progress("+c.id+")'>View Development History</button><div id='pr"+c.id+"'></div></div>").join("")||"No children registered"}catch{}}
+async function childCreate(){try{await api("/school/children",{method:"POST",body:JSON.stringify({full_name:$("cn").value,date_of_birth:$("cdob").value,gender:$("cgender").value,school_id:$("cschool").value||null,current_class:$("cclass").value,admission_number:$("cadm").value})});say("Child registered.","ok");loadChildren()}catch(e){say(e.message,"err")}}
+async function progress(id){try{let d=await api("/school/children/"+id+"/progress"),a=await api("/school/assessments/"+id);$("pr"+id).innerHTML="<h4>Marks</h4>"+tbl(d.marks)+"<h4>Attendance</h4>"+tbl(d.attendance)+"<h4>Reports</h4>"+tbl(d.reports)+"<h4>Class history</h4>"+tbl(d.class_history)+"<h4>Assessments</h4>"+tbl(a.assessments)}catch(e){say(e.message,"err")}}
+function tbl(a){if(!a||!a.length)return"<p>No records.</p>";let k=Object.keys(a[0]);return"<table><tr>"+k.map(x=>"<th>"+esc(x)+"</th>").join("")+"</tr>"+a.map(r=>"<tr>"+k.map(x=>"<td>"+esc(r[x])+"</td>").join("")+"</tr>").join("")+"</table>"}
+if(token&&user){$("auth").classList.add("hidden");$("app").classList.remove("hidden");$("logout").classList.remove("hidden");load()}
+</script>
+</body>
 </html>
